@@ -38,7 +38,7 @@ export declare class CollectionConcept implements ICollectionConcept {
     protected FindItem_(index: CollectionIndexType): ICollectionItem | null;
     protected InitItem_(entry: CollectionEntryType): ICollectionItem;
     protected CreateItemProxy_(entryName: string, index: CollectionIndexType, getItem: () => ICollectionItem | null): object;
-    protected MapToExternalItem_(index: string, item: ICollectionItem): {
+    protected MapToExternalItem_(item: ICollectionItem): {
         [x: string]: number | CollectionEntryType;
         quantity: number;
     };

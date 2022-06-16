@@ -87,7 +87,7 @@ export class CollectionConcept implements ICollectionConcept{
 
     public FindItem(index: CollectionIndexType){
         let found = this.FindItem_(index);
-        return (found ? this.MapToExternalItem_(index, found) : null);
+        return (found ? this.MapToExternalItem_(found) : null);
     }
 
     public Import({ list, incremental, alertType }: ICollectionImportParams){
@@ -112,7 +112,7 @@ export class CollectionConcept implements ICollectionConcept{
 
             if (alertType !== 'none' && alertType !== 'item'){
                 window.dispatchEvent(new CustomEvent(`${this.name_}.import`, {
-                    detail: { list: updated.map(item => this.MapToExternalItem_(this.ExtractIndex_(item.entry), item)) },
+                    detail: { list: updated.map(item => this.MapToExternalItem_(item)) },
                 }));
                 this.AlertUpdate_();
             }
@@ -156,7 +156,7 @@ export class CollectionConcept implements ICollectionConcept{
         
         if (alertType !== 'none'){//Alert item update
             window.dispatchEvent(new CustomEvent(`${this.name_}.item`, {
-                detail: { item: this.MapToExternalItem_(index, item) },
+                detail: { item: this.MapToExternalItem_(item) },
             }));
         }
         
@@ -183,7 +183,7 @@ export class CollectionConcept implements ICollectionConcept{
             return this.queuedTasks_.push(() => this.RemoveAll());
         }
 
-        this.items_.slice(0).forEach(item => this.UpdateItem({ index: this.ExtractIndex_(item), quantity: 0, incremental: false, alertType: 'none' }));
+        this.items_.slice(0).forEach(item => this.UpdateItem({ index: this.ExtractIndex_(this.MapToExternalItem_(item)), quantity: 0, incremental: false, alertType: 'none' }));
 
         window.dispatchEvent(new CustomEvent(`${this.name_}.clear`));
         this.AlertUpdate_();
@@ -203,7 +203,7 @@ export class CollectionConcept implements ICollectionConcept{
     }
 
     protected GetItems_(): Array<CollectionEntryType>{
-        return this.items_.map(item => this.MapToExternalItem_(this.ExtractIndex_(item.entry), item));
+        return this.items_.map(item => this.MapToExternalItem_(item));
     }
 
     protected FindItemIndex_(index: CollectionIndexType){
@@ -254,17 +254,22 @@ export class CollectionConcept implements ICollectionConcept{
         }))
     }
 
-    protected MapToExternalItem_(index: string, item: ICollectionItem){
+    protected MapToExternalItem_(item: ICollectionItem){
+        let entryName = (this.options_.entryName || DefaultCollectionOptions.entryName!);
         return {
             quantity: item.quantity,
-            [this.options_.entryName || DefaultCollectionOptions.entryName!]: item.entry,
+            [entryName]: (item.entry || item[entryName]),
         };
     }
 
     protected ExtractIndex_(item: CollectionEntryType): CollectionIndexType{
         let indexName = (this.options_.indexName || DefaultCollectionOptions.indexName);
+        if (item.hasOwnProperty(indexName)){
+            return item[indexName];
+        }
+        
         let entry = item[this.options_.entryName || DefaultCollectionOptions.entryName!];
-        return (item.hasOwnProperty(indexName) ? item[indexName] : entry[indexName]);
+        return (entry ? entry[indexName] : '');
     }
 
     protected AlertUpdate_(){

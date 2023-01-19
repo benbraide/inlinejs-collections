@@ -12,3 +12,5 @@ export * from './directive/favorites'
 export * from './magic/collection'
 export * from './magic/cart'
 export * from './magic/favorites'
+
+export * from './entry'
